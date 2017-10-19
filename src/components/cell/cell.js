@@ -20,11 +20,11 @@ const styles = {
       justifyContent: 'center'
     }
   },
-  numberText: {
-    color: 'blue',
+  numberText: (color) => ({
+    color: color,
     fontWeight: '600',
     fontSize: 16
-  }
+  })
 }
 
 const createStyle = ({x, y, width, height}) => {
@@ -47,10 +47,12 @@ export default class Cell extends React.Component {
   constructor (props) {
     super(props)
     this.gameStore = this.props.gameStore
-    const { cell } = this.props
-    this.minesAround = cell.cellsAround.filter(item => item.mine === true)
     this.onSelect = this.onSelect.bind(this)
     this.onLongSelect = this.onLongSelect.bind(this)
+  }
+  get minesAround () {
+    const { cell } = this.props
+    return cell.cellsAround.filter(item => item.mine === true)
   }
   onSelect () {
     const { cell } = this.props
@@ -75,17 +77,17 @@ export default class Cell extends React.Component {
     }
   }
   renderNumber ({isOpen, mine}) {
-    if (isOpen === true && mine === false && this.minesAround.length > 0) {
-      return <Text style={styles.numberText}>
+    const mines = this.minesAround.length
+    if (isOpen === true && mine === false &&  mines > 0) {
+      const color = this.gameStore.availableColors[mines.toString()]
+      return <Text style={styles.numberText(color)}>
         {this.minesAround.length}
       </Text>
     }
   }
-  render () {
-    const { cell } = this.props
-    const newProps = { ...cell }
-    return (
-      <TouchableOpacity
+  renderCell (newProps) {
+    if (this.gameStore.gameOver === false && newProps.isOpen === false) {
+      return <TouchableOpacity
         style={createStyle(newProps)}
         onPress={this.onSelect}
         onLongPress={this.onLongSelect}>
@@ -95,6 +97,19 @@ export default class Cell extends React.Component {
           {this.renderMine(newProps)}
         </EmptyCell>
       </TouchableOpacity>
-    )
+    } else {
+      return <View style={createStyle(newProps)}>
+        <EmptyCell {...newProps}>
+          {this.renderNumber(newProps)}
+          {this.renderFlag(newProps)}
+          {this.renderMine(newProps)}
+        </EmptyCell>
+      </View>
+    }
+  }
+  render () {
+    const { cell } = this.props
+    const newProps = { ...cell }
+    return (this.renderCell(newProps))
   }
 }

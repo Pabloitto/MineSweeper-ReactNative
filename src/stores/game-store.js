@@ -7,6 +7,15 @@ const TABLE_HEIGHT = height * 0.70
 const columns = Math.ceil(TABLE_WIDTH / CELL_SIZE)
 const rows = Math.ceil(TABLE_HEIGHT / CELL_SIZE)
 
+const getRandomColor = () => {
+  const letters = '0123456789ABCDEF'.split('');
+  let color = '#';
+  for (let i = 0; i < 6; i++) {
+    color += letters[Math.round(Math.random() * 10)];
+  }
+  return color;
+}
+
 class CellObj {
   constructor (x, y) {
     this.x = x
@@ -22,6 +31,7 @@ class CellObj {
 }
 
 class GameStore {
+  @observable availableColors = {}
   @observable cells = []
   @observable gameOver = false
   constructor () {
@@ -52,6 +62,9 @@ class GameStore {
       row.forEach(cell => {
         cell.cellsAround = this.cellsAround(cell)
         cell.minesAround = cell.cellsAround.filter(i => i.mine === true)
+        if (cell.minesAround.length > 0) {
+          this.pushNewColor(cell.minesAround.length.toString(), getRandomColor())
+        }
       })
     })
   }
@@ -72,10 +85,14 @@ class GameStore {
     this.addMines(10)
     this.addBranches()
   }
+  @action pushNewColor (number, color) {
+    this.availableColors[number] = color
+  }
   @action openCell (current) {
     current.isOpen = true
     if (current.mine === true) {
       this.gameOver = true
+      this.openMines()
       return
     }
     if (current.minesAround.length === 0) {
@@ -89,6 +106,15 @@ class GameStore {
         }
       })
     }
+  }
+  @action openMines () {
+    this.cells.forEach(row => {
+      row.forEach(cell => {
+        if (cell.mine === true && cell.isOpen === false) {
+          cell.isOpen = true
+        }
+      })
+    })
   }
   @action setFlag (cell) {
     cell.flag = !cell.flag
