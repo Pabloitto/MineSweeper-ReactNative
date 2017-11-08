@@ -17,7 +17,7 @@ const StatusBar = ({cellSize, mines, time = 0, gameOver = false, onReset}) => {
   return (
     <View style={statusBarStyle}>
       <Text>
-        MINES LEFT: {mines}
+        MINES: {mines}
       </Text>
       <TouchableOpacity onPress={onReset}>
         <EmptyCell width={cellSize} height={cellSize}>
